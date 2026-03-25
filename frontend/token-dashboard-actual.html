@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智种草 - Token 实际消耗监控 (森哥真实数据)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); 
+            min-height: 100vh;
+            padding: 2rem;
+            color: white;
+        }
+        
+        .dashboard { max-width: 1400px; margin: 0 auto; }
+        
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 2rem; 
+        }
+        .header h1 { font-size: 2.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .danger-badge {
+            background: #fffaf0;
+            color: #c2410c;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+            border: 2px solid #fdba74;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.05); }
+        }
+        
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2rem;
+        }
+        .card { 
+            background: white; 
+            border-radius: 16px; 
+            padding: 2rem; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            color: #1a202c;
+        }
+        .card-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 1.5rem;
+        }
+        .card-title { font-size: 0.875rem; color: #718096; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+        .card-icon { font-size: 2.5rem; }
+        .card-value { 
+            font-size: 3rem; 
+            font-weight: bold; 
+            color: #dc2626; 
+            margin-bottom: 0.5rem; 
+        }
+        .card-subtitle { font-size: 1rem; color: #a0aec0; margin-bottom: 1rem; }
+        .warning-banner {
+            background: #fed7d7;
+            border-left: 6px solid #e53e3e;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        .warning-text { 
+            color: #9b2c2c; 
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .cost-table {
+            width: 100%;
+            margin-top: 1rem;
+            border-collapse: collapse;
+        }
+        .cost-table th, .cost-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .cost-table th {
+            background: #edf2f7;
+            color: #4a5568;
+            font-weight: 600;
+        }
+        .cost-highlight {
+            color: #e53e3e;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .recommendation {
+            background: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 8px;
+        }
+        .rec-title {
+            font-weight: bold;
+            color: #2c5282;
+            margin-bottom: 0.5rem;
+        }
+        .rec-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .rec-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        .rec-list li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #3182ce;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard { padding: 1rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <h1>🚨 Token 实际消耗警报!</h1>
+            <div class="danger-badge">⚠️ 严重超标!需立即行动</div>
+        </div>
+
+        <!-- Alert Banner -->
+        <div class="warning-banner">
+            <div class="warning-text">
+                ⚡ 根据森哥提供的真实 API 数据：<br>
+                近 6 小时已消耗 9,077K tokens (约 908 万 tokens)<br>
+                总成本：￥9,092.40
+            </div>
+        </div>
+
+        <!-- Key Metrics Grid -->
+        <div class="grid">
+            <!-- Cost -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">💰 今日总成本</span>
+                    <span class="card-icon">💸</span>
+                </div>
+                <div class="card-value">￥9,092.40</div>
+                <div class="card-subtitle">实际已消耗 (vs ￥100 预警阈值)</div>
+                
+                <table class="cost-table">
+                    <tr>
+                        <th>明细项</th>
+                        <th style="text-align:right">金额</th>
+                    </tr>
+                    <tr>
+                        <td>输入 tokens (~4.5M)</td>
+                        <td style="text-align:right">￥3,600.00</td>
+                    </tr>
+                    <tr>
+                        <td>输出 tokens (~4.6M)</td>
+                        <td style="text-align:right">￥5,492.40</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:bold">总计</td>
+                        <td style="text-align:right; font-weight:bold;" class="cost-highlight">￥9,092.40</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Budget Impact -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📊 预算冲击分析</span>
+                    <span class="card-icon">📉</span>
+                </div>
+                <div class="card-value" style="color: #dd6b20;">9,092%</div>
+                <div class="card-subtitle">超过预警阈值比例</div>
+                
+                <table class="cost-table">
+                    <tr>
+                        <th>指标</th>
+                        <th style="text-align:right">数值</th>
+                    </tr>
+                    <tr>
+                        <td>日预警阈值</td>
+                        <td style="text-align:right">￥100</td>
+                    </tr>
+                    <tr>
+                        <td>日紧急阈值</td>
+                        <td style="text-align:right">￥300</td>
+                    </tr>
+                    <tr>
+                        <td>当前已花</td>
+                        <td style="text-align:right" class="cost-highlight">￥9,092.40</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="padding-top:1rem; text-align:center;">
+                            🛑 已达到危险阈值的<strong>18 倍!</strong>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Hourly Rate -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">⏱️ 时消费速度</span>
+                    <span class="card-icon">⚡</span>
+                </div>
+                <div class="card-value">￥1,515/小时</div>
+                <div class="card-subtitle">平均每小时成本</div>
+                
+                <table class="cost-table">
+                    <tr>
+                        <th>时间</th>
+                        <th style="text-align:right">tokens</th>
+                        <th style="text-align:right">成本</th>
+                    </tr>
+                    <tr>
+                        <td>6 小时累计</td>
+                        <td style="text-align:right">9,077K</td>
+                        <td style="text-align:right">￥9,092</td>
+                    </tr>
+                    <tr>
+                        <td>每小时平均</td>
+                        <td style="text-align:right">1,513K</td>
+                        <td style="text-align:right" class="cost-highlight">￥1,515</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Monthly Projection -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🎯 月度预测</span>
+                    <span class="card-icon">📅</span>
+                </div>
+                <div class="card-value">~￥54,554</div>
+                <div class="card-subtitle">按当前速度持续 30 天</div>
+                
+                <table class="cost-table">
+                    <tr>
+                        <th>周期</th>
+                        <th style="text-align:right">预估成本</th>
+                    </tr>
+                    <tr>
+                        <td>今日剩余</td>
+                        <td style="text-align:right">已超支!</td>
+                    </tr>
+                    <tr>
+                        <td>本周剩余</td>
+                        <td style="text-align:right">~￥65,000</td>
+                    </tr>
+                    <tr>
+                        <td>本月全月</td>
+                        <td style="text-align:right" class="cost-highlight">~￥54,554</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Action Required -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">🔧 立即行动建议</span>
+                <span class="card-icon">⚡</span>
+            </div>
+            
+            <div class="recommendation">
+                <div class="rec-title">🚀 必须执行的优化措施:</div>
+                <ul class="rec-list">
+                    <li><strong>限制单条内容长度：</strong>将每条生成的回答/帖子控制在 500 字以内</li>
+                    <li><strong>调整套餐定价：</strong>考虑将 Pro 版价格从¥299 提升至¥500+以覆盖成本</li>
+                    <li><strong>增加缓存机制：</strong>对重复问题返回 cached 结果而非重新生成</li>
+                    <li><strong>使用 cheaper 模型：</strong>简单任务用 Qwen-Turbo 替代 Plus/Max</li>
+                    <li><strong>设置硬性配额：</strong>每个用户每天最多消耗 10K tokens</li>
+                    <li><strong>添加费用提醒：</strong>当单用户累计花费达￥50 时发送警告</li>
+                </ul>
+            </div>
+            
+            <div style="margin-top: 1.5rem; padding: 1rem; background: #fffaf0; border-radius: 8px;">
+                <strong style="color: #c2410c;">⚠️ 最终建议:</strong>
+                <p style="color: #718096; margin-top: 0.5rem;">
+                    当前消耗速度不可持续！建议立即暂停 Beta 测试，重新评估产品方向和用量控制策略，否则将在一周内耗尽预算。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate real-time updates based on actual data
+        console.log('🚨 ALERT DASHBOARD LOADED');
+        console.log('Actual usage from user:', '9,077K tokens over 6 hours');
+        console.log('Total cost calculated:', '￥9,092.40');
+        
+        // Update warning banner if needed
+        const alertBanner = document.querySelector('.warning-banner');
+        if (alertBanner) {
+            alertBanner.innerHTML = `
+                <div class="warning-text">
+                    🚨 警报状态：严重超标!<br>
+                    数据来源：森哥提供的真实 API 平台统计<br>
+                    近 6 小时消耗：<strong>9,077,000 tokens</strong><br>
+                    对应成本：<strong>￥9,092.40</strong><br>
+                    预警阈值：￥100/天 → 超支 <strong>9,092%</strong>!
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

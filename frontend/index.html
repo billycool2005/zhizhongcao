@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContentFlow - AI 问答种草自动发文工具</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a2e; }
+        
+        /* Hero Section */
+        .hero { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            padding: 2rem;
+        }
+        .hero-content { max-width: 900px; }
+        .logo { font-size: 3rem; font-weight: bold; margin-bottom: 1rem; }
+        .tagline { font-size: 1.5rem; margin-bottom: 2rem; opacity: 0.9; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 3rem; }
+        .feature { background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 12px; backdrop-filter: blur(10px); }
+        .cta-button { display: inline-block; background: white; color: #667eea; padding: 1rem 2rem; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 2rem; transition: transform 0.3s; }
+        .cta-button:hover { transform: translateY(-3px); }
+        
+        /* Features Grid */
+        .grid-section { padding: 4rem 2rem; background: #f8f9fa; }
+        .section-title { font-size: 2rem; text-align: center; margin-bottom: 3rem; }
+        .pricing { display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; margin-top: 3rem; }
+        .price-card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+        .price { font-size: 2.5rem; font-weight: bold; color: #667eea; margin: 1rem 0; }
+        .price-list { list-style: none; text-align: left; margin: 1.5rem 0; }
+        .price-list li { padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+        .checkmark { color: #10b981; margin-right: 0.5rem; }
+        
+        /* Footer */
+        footer { background: #1a1a2e; color: white; padding: 2rem; text-align: center; }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="logo">🐵 ContentFlow</div>
+            <p class="tagline">你的 AI 内容流水线 · 24/7 自动获取流量和收益</p>
+            
+            <a href="#" class="cta-button">🚀 免费试用 7 天</a>
+            
+            <div class="features">
+                <div class="feature">
+                    <h3>🤖 AI 爬虫</h3>
+                    <p>自动抓取高流量低竞争问题，选题不犯愁</p>
+                </div>
+                <div class="feature">
+                    <h3✍️ AI 撰稿</h3>
+                    <p>按模板自动生成高质量种草文，质量>0.7</p>
+                </div>
+                <div class="feature">
+                    <h3>📢 AI 发布</h3>
+                    <p>自动排版、配图、定时发布，完全不用管</p>
+                </div>
+                <div class="feature">
+                    <h3>🎯 AI 优化</h3>
+                    <p>根据数据反馈自动迭代文案，越用越好</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="grid-section">
+        <h2 class="section-title">💰 简单透明的定价</h2>
+        <div class="pricing">
+            <div class="price-card">
+                <h3>Basic</h3>
+                <div class="price">¥99/月</div>
+                <ul class="price-list">
+                    <li><span class="checkmark">✓</span> 3 个账号</li>
+                    <li><span class="checkmark">✓</span> 基础功能</li>
+                    <li><span class="checkmark">✓</span> 每日限 10 次</li>
+                    <li><span class="checkmark">✓</span> 邮件支持</li>
+                </ul>
+                <a href="#" class="cta-button">开始使用</a>
+            </div>
+            <div class="price-card" style="border: 2px solid #667eea; transform: scale(1.05);">
+                <h3>Pro (热门)</h3>
+                <div class="price">¥299/月</div>
+                <ul class="price-list">
+                    <li><span class="checkmark">✓</span> 10 个账号</li>
+                    <li><span class="checkmark">✓</span> 全部高级功能</li>
+                    <li><span class="checkmark">✓</span> 无限次数</li>
+                    <li><span class="checkmark">✓</span> 优先响应</li>
+                    <li><span class="checkmark">✓</span> API 访问</li>
+                </ul>
+                <a href="#" class="cta-button">立即升级</a>
+            </div>
+            <div class="price-card">
+                <h3>Enterprise</h3>
+                <div class="price">¥999/月</div>
+                <ul class="price-list">
+                    <li><span class="checkmark">✓</span> 无限账号</li>
+                    <li><span class="checkmark">✓</span> API 访问</li>
+                    <li><span class="checkmark">✓</span> 定制功能</li>
+                    <li><span class="checkmark">✓</span> 专属客服</li>
+                    <li><span class="checkmark">✓</span> SLA 保证</li>
+                </ul>
+                <a href="#" class="cta-button">联系我们</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2026 ContentFlow. All rights reserved.</p>
+        <p>Made with 💜 by the悟空 AI Team</p>
+    </footer>
+</body>
+</html>

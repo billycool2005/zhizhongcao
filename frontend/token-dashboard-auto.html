@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智种草 - Token 自动监控 (实时)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh;
+            padding: 2rem;
+            color: white;
+        }
+        
+        .dashboard { max-width: 1400px; margin: 0 auto; }
+        
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 2rem; 
+        }
+        .header h1 { font-size: 2.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .live-badge {
+            background: rgba(56, 161, 105, 0.9);
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #38a169;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2rem;
+        }
+        .card { 
+            background: white; 
+            border-radius: 16px; 
+            padding: 2rem; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            color: #1a202c;
+        }
+        .card-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 1.5rem;
+        }
+        .card-title { font-size: 0.75rem; color: #718096; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+        .card-icon { font-size: 2.5rem; }
+        .card-value { 
+            font-size: 2.5rem; 
+            font-weight: bold; 
+            color: #38a169; 
+            margin-bottom: 0.5rem; 
+        }
+        .card-subtitle { font-size: 0.875rem; color: #a0aec0; }
+        
+        .alert-banner {
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .alert-normal { 
+            background: rgba(56, 161, 105, 0.1);
+            color: #38a169;
+            border-left: 4px solid #38a169;
+        }
+        .alert-warning { 
+            background: rgba(253, 186, 116, 0.1);
+            color: #dd6b20;
+            border-left: 4px solid #dd6b20;
+        }
+        .alert-danger { 
+            background: rgba(248, 113, 113, 0.1);
+            color: #e53e3e;
+            border-left: 4px solid #e53e3e;
+        }
+        
+        .chart-bar-container {
+            display: flex;
+            align-items: flex-end;
+            height: 200px;
+            gap: 4px;
+            margin-top: 1rem;
+            padding: 0 1rem;
+        }
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .chart-bar:hover { background: linear-gradient(to top, #4c51bf, #5b6cf7); }
+        .chart-label { 
+            position: absolute; 
+            bottom: -20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            font-size: 0.65rem; 
+            color: #718096;
+        }
+        .chart-value { 
+            position: absolute; 
+            top: -18px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            font-size: 0.65rem; 
+            font-weight: bold;
+        }
+        
+        .cost-details {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-total {
+            font-weight: bold;
+            color: #38a169;
+            font-size: 1.1rem;
+        }
+        
+        .progress-bar-container {
+            margin-top: 1rem;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #718096;
+            margin-bottom: 0.5rem;
+        }
+        .progress-bar {
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 1s ease;
+        }
+        .progress-green { background: linear-gradient(90deg, #38a169, #48bb78); }
+        .progress-yellow { background: linear-gradient(90deg, #ecc94b, #d69e2e); }
+        .progress-red { background: linear-gradient(90deg, #fc8181, #e53e3e); }
+        
+        .auto-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(79, 70, 229, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: #4c51bf;
+            margin-top: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard { padding: 1rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔥 Token 自动监控系统</h1>
+            <div class="live-badge">
+                <div class="live-dot"></div>
+                <span>自动追踪中 · 每 30 秒刷新</span>
+            </div>
+        </div>
+
+        <!-- Alert Banner -->
+        <div id="alertBanner" class="alert-banner alert-normal">
+            ✅ 加载中...
+        </div>
+
+        <!-- Key Metrics Grid -->
+        <div class="grid">
+            <!-- Cost -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">💰 今日总成本</span>
+                    <span class="card-icon">💸</span>
+                </div>
+                <div class="card-value" id="totalCost">￥0.00</div>
+                <div class="card-subtitle">自动追踪累计</div>
+                
+                <div class="cost-details">
+                    <div class="detail-row">
+                        <span>输入 tokens</span>
+                        <span id="inputTokens">0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>输出 tokens</span>
+                        <span id="outputTokens">0</span>
+                    </div>
+                    <div class="detail-row detail-total">
+                        <span>总计</span>
+                        <span id="totalTokens">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Budget -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📊 预算使用情况</span>
+                    <span class="card-icon">📈</span>
+                </div>
+                <div class="card-value" id="usagePercent">0%</div>
+                <div class="card-subtitle">占预警阈值比例</div>
+                
+                <div class="progress-bar-container">
+                    <div class="progress-label">
+                        <span>已用费用</span>
+                        <span>￥<span id="spentAmount">0.00</span> / ￥100</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-green" id="budgetProgress" style="width: 0%"></div>
+                    </div>
+                    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #718096;">
+                        剩余额度：￥<span id="remainingAmount">100.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hourly Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">⏰ 每小时消耗趋势</span>
+                    <span class="card-icon">📊</span>
+                </div>
+                <div class="chart-bar-container" id="hourlyChart">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+
+            <!-- Predictions -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🎯 月度预测</span>
+                    <span class="card-icon">📅</span>
+                </div>
+                <div class="card-value" id="monthlyPrediction">￥0.00</div>
+                <div class="card-subtitle">按当前速度持续 30 天</div>
+                
+                <div class="auto-indicator">
+                    🤖 数据源：<strong>本地自动追踪</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 数据来源：本地自动生成的 dashboard_data.json
+        async function loadData() {
+            try {
+                const response = await fetch('dashboard_data.json?t=' + Date.now());
+                const data = await response.json();
+                
+                if (!data || !data.today) {
+                    console.log('等待数据加载...');
+                    return;
+                }
+                
+                updateDashboard(data);
+                
+            } catch (error) {
+                console.error('加载失败:', error);
+                // 使用默认值
+                updateDashboard({
+                    today: { cost: 0, tokens: 0 },
+                    hourly_trend: []
+                });
+            }
+        }
+        
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+        
+        function updateDashboard(data) {
+            const totalCost = data.today?.cost || 0;
+            const totalTokens = data.today?.tokens || 0;
+            const usagePercent = data.today?.percentage || 0;
+            const remaining = data.today?.remaining || 100;
+            
+            // Update cost card
+            document.getElementById('totalCost').textContent = '￥' + totalCost.toFixed(2);
+            document.getElementById('totalTokens').textContent = formatNumber(totalTokens);
+            
+            // Calculate input/output split
+            const inputTokens = Math.floor(totalTokens * 0.5);
+            const outputTokens = totalTokens - inputTokens;
+            document.getElementById('inputTokens').textContent = formatNumber(inputTokens);
+            document.getElementById('outputTokens').textContent = formatNumber(outputTokens);
+            
+            // Update budget card
+            document.getElementById('usagePercent').textContent = usagePercent.toFixed(1) + '%';
+            document.getElementById('spentAmount').textContent = totalCost.toFixed(2);
+            document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
+            
+            // Update progress bar
+            const progressBar = document.getElementById('budgetProgress');
+            progressBar.style.width = Math.min(usagePercent, 100) + '%';
+            
+            if (usagePercent < 50) {
+                progressBar.className = 'progress-fill progress-green';
+            } else if (usagePercent < 75) {
+                progressBar.className = 'progress-fill progress-yellow';
+            } else {
+                progressBar.className = 'progress-fill progress-red';
+            }
+            
+            // Update alert banner
+            const alertBanner = document.getElementById('alertBanner');
+            let alertClass = 'alert-normal';
+            let alertMessage = '✅ 运行正常 | 今日已花费￥' + totalCost.toFixed(2) + ', 剩余￥' + remaining.toFixed(2);
+            
+            if (usagePercent >= 100) {
+                alertClass = 'alert-danger';
+                alertMessage = '🚨 今日预算已耗尽！请立即采取措施!';
+            } else if (usagePercent >= 75) {
+                alertClass = 'alert-warning';
+                alertMessage = '⚠️ 今日已超预算 75%，请留意消耗!';
+            } else if (usagePercent >= 50) {
+                alertMessage = '💡 今日已使用预算的' + usagePercent.toFixed(0) + '%';
+            }
+            
+            alertBanner.className = 'alert-banner ' + alertClass;
+            alertBanner.textContent = alertMessage;
+            
+            // Update monthly prediction
+            document.getElementById('monthlyPrediction').textContent = '￥' + (data.predictions?.projected_monthly || 0).toFixed(0);
+            
+            // Update hourly chart
+            renderHourlyChart(data.hourly_trend || []);
+            
+            console.log('Dashboard updated at:', new Date().toLocaleTimeString());
+        }
+        
+        function renderHourlyChart(hourlyData) {
+            const chart = document.getElementById('hourlyChart');
+            
+            if (hourlyData.length === 0) {
+                chart.innerHTML = '<div style="color:#718096;text-align:center;padding:2rem;width:100%;">暂无数据</div>';
+                return;
+            }
+            
+            const maxCost = Math.max(...hourlyData.map(h => h.cost), 1);
+            
+            chart.innerHTML = hourlyData.map((hour, index) => {
+                const height = (hour.cost / maxCost) * 100;
+                return `
+                    <div class="chart-bar" style="height: ${height}%">
+                        <div class="chart-value">￥${hour.cost.toFixed(2)}</div>
+                        <div class="chart-label">${hour.hour}:00</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 初始化并定时刷新
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            setInterval(loadData, 30000); // 每 30 秒刷新一次
+            
+            console.log('✅ Token Auto Monitor Loaded');
+            console.log('   数据源：local_auto_tracking');
+            console.log('   刷新频率：30 秒');
+        });
+    </script>
+</body>
+</html>

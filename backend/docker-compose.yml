@@ -1,0 +1,69 @@
+# ContentFlow - Docker Compose Configuration
+
+version: '3.8'
+
+services:
+  # Web API Service
+  backend:
+    build: .
+    container_name: contentflow-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/contentflow
+      - REDIS_URL=redis://redis:6379/0
+      - QWEN_API_KEY=${QWEN_API_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./app:/app/app
+    restart: unless-stopped
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: contentflow-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: contentflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: contentflow-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # Celery Worker (后台任务)
+  celery-worker:
+    build: .
+    container_name: contentflow-worker
+    command: celery -A app.celery worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/contentflow
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./app:/app/app
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    driver: bridge

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智种草 - Token 消耗监控 (最新定价 v1.1)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .dashboard { 
+            max-width: 1400px; 
+            margin: 0 auto;
+        }
+        
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 2rem; 
+            color: white;
+        }
+        .header h1 { font-size: 2.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .pricing-badge {
+            background: rgba(56, 161, 105, 0.9);
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: bold;
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
+        
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2rem;
+        }
+        .card { 
+            background: rgba(255,255,255,0.95); 
+            border-radius: 16px; 
+            padding: 2rem; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+        }
+        .card-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 1.5rem;
+        }
+        .card-title { font-size: 0.75rem; color: #718096; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+        .card-icon { font-size: 2rem; }
+        .card-value { font-size: 2.5rem; font-weight: bold; color: #2d3748; margin-bottom: 0.5rem; }
+        .card-subtitle { font-size: 0.875rem; color: #a0aec0; }
+        .pricing-info { 
+            font-size: 0.75rem; 
+            color: #718096; 
+            background: #f7fafc; 
+            padding: 0.75rem; 
+            border-radius: 8px; 
+            margin-top: 1rem;
+        }
+        
+        .progress-container { margin-top: 1rem; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.75rem; color: #718096; margin-bottom: 0.5rem; }
+        .progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+        .progress-green { background: linear-gradient(90deg, #38a169, #48bb78); }
+        .progress-yellow { background: linear-gradient(90deg, #dd6b20, #ecc94b); }
+        .progress-red { background: linear-gradient(90deg, #e53e3e, #fc8181); }
+        
+        .cost-breakdown {
+            background: #f0fff4;
+            border-left: 4px solid #38a169;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .breakdown-row:last-child { border-bottom: none; }
+        .cost-highlight {
+            font-weight: bold;
+            color: #38a169;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard { padding: 1rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔥 智种草 - Token 消耗监控</h1>
+            <div class="pricing-badge">💰 最新定价：输入￥0.8/百万 | 输出￥1.2/百万</div>
+        </div>
+
+        <!-- Pricing Info Banner -->
+        <div style="background: rgba(255,255,255,0.95); padding: 1rem; border-radius: 12px; margin-bottom: 2rem;">
+            <h3 style="color: #2d3748; margin-bottom: 0.5rem;">📊 当前定价配置 (v1.1)</h3>
+            <p style="color: #718096; font-size: 0.9rem;">更新时间：2026-03-26 00:09 | 货币单位：人民币 ￥</p>
+        </div>
+
+        <!-- Key Metrics Grid -->
+        <div class="grid">
+            <!-- Token Cost -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">💬 Token 成本统计</span>
+                    <span class="card-icon">💰</span>
+                </div>
+                <div class="card-value" id="totalCost">￥0.00</div>
+                <div class="card-subtitle">今日累计消费</div>
+                
+                <div class="pricing-info">
+                    <strong>单价:</strong><br>
+                    输入：￥0.8 / 百万 tokens<br>
+                    输出：￥1.2 / 百万 tokens
+                </div>
+                
+                <div class="cost-breakdown" id="costBreakdown">
+                    <div class="breakdown-row">
+                        <span>输入 token</span>
+                        <span id="inputTokens">0</span>
+                        <span>￥<span id="inputCost">0.0000</span></span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span>输出 token</span>
+                        <span id="outputTokens">0</span>
+                        <span>￥<span id="outputCost">0.0000</span></span>
+                    </div>
+                    <div class="breakdown-row" style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 2px solid #38a169;">
+                        <span class="cost-highlight">总成本</span>
+                        <span class="cost-highlight">￥<span id="totalCostDetail">0.0000</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Budget -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📅 今日预算进度</span>
+                    <span class="card-icon">📊</span>
+                </div>
+                <div class="card-value" id="todayPercentage">0%</div>
+                <div class="card-subtitle">占警告阈值比例</div>
+                
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>已用费用</span>
+                        <span>￥<span id="dailySpent">0.00</span> / ￥100</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-green" id="budgetProgress" style="width: 0%"></div>
+                    </div>
+                    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #718096;">
+                        剩余可用额度：￥<span id="remainingBudget">100.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert Status -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🛡️ 安全告警状态</span>
+                    <span class="card-icon">⚠️</span>
+                </div>
+                <div class="card-value" id="alertStatus">正常 ✓</div>
+                <div class="card-subtitle" id="alertMessage">所有指标正常</div>
+                
+                <div class="pricing-info">
+                    <div style="margin-bottom: 0.5rem;"><strong>告警阈值:</strong></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                        <span>警告 ￥100/天</span>
+                        <span><span style="color: #dd6b20;">●</span> Warning</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                        <span>紧急 ￥300/天</span>
+                        <span><span style="color: #e53e3e;">●</span> Critical</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>危险 ￥500/天</span>
+                        <span><span style="color: #9b2c2c;">●</span> Danger</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Cost -->
+            <div class="card" style="grid-column: span 2;">
+                <div class="card-header">
+                    <span class="card-title">💡 典型场景成本参考</span>
+                    <span class="card-icon">🎯</span>
+                </div>
+                <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="background: #edf2f7; padding: 1rem; border-radius: 8px;">
+                            <div style="font-size: 0.75rem; color: #718096; margin-bottom: 0.5rem;">单条回答</div>
+                            <div style="font-weight: bold; color: #2d3748;">1k + 1.5k tokens</div>
+                            <div style="font-size: 1.25rem; color: #38a169; margin-top: 0.5rem;">￥0.0026</div>
+                        </div>
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="background: #ebf4ff; padding: 1rem; border-radius: 8px;">
+                            <div style="font-size: 0.75rem; color: #718096; margin-bottom: 0.5rem;">Pro 版日满额</div>
+                            <div style="font-weight: bold; color: #2d3748;">40k + 60k tokens</div>
+                            <div style="font-size: 1.25rem; color: #3182ce; margin-top: 0.5rem;">￥104.00</div>
+                        </div>
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="background: #e6fffa; padding: 1rem; border-radius: 8px;">
+                            <div style="font-size: 0.75rem; color: #718096; margin-bottom: 0.5rem;">Enterprise 日满额</div>
+                            <div style="font-weight: bold; color: #2d3748;">400k + 600k tokens</div>
+                            <div style="font-size: 1.25rem; color: #319795; margin-top: 0.5rem;">￥1,040.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Pricing config from森哥's update
+        const PRICING = {
+            inputPerMillion: 0.8,
+            outputPerMillion: 1.2,
+            warningThreshold: 100,
+            criticalThreshold: 300,
+            dangerThreshold: 500
+        };
+
+        // Simulate current usage data (will be replaced with real API calls)
+        const currentUsage = {
+            inputTokens: 125000,
+            outputTokens: 95000,
+            dailySpent: 165.00
+        };
+
+        function formatCurrency(amount) {
+            return '￥' + amount.toFixed(2);
+        }
+
+        function calculateCost(tokensIn, tokensOut) {
+            const inputCost = (tokensIn * PRICING.inputPerMillion) / 1000000;
+            const outputCost = (tokensOut * PRICING.outputPerMillion) / 1000000;
+            return {
+                total: inputCost + outputCost,
+                input: inputCost,
+                output: outputCost
+            };
+        }
+
+        function getAlertLevel(cost) {
+            if (cost >= PRICING.dangerThreshold) return { status: "danger", message: "超出危险阈值!", color: "#e53e3e" };
+            if (cost >= PRICING.criticalThreshold) return { status: "critical", message: "已达到紧急阈值!", color: "#c53030" };
+            if (cost >= PRICING.warningThreshold) return { status: "warning", message: "已超警告阈值，请注意!", color: "#dd6b20" };
+            return { status: "normal", message: "运行正常", color: "#38a169" };
+        }
+
+        function updateDashboard() {
+            const costs = calculateCost(currentUsage.inputTokens, currentUsage.outputTokens);
+            
+            // Update cost breakdown
+            document.getElementById('totalCost').textContent = formatCurrency(costs.total);
+            document.getElementById('inputTokens').textContent = currentUsage.inputTokens.toLocaleString();
+            document.getElementById('outputTokens').textContent = currentUsage.outputTokens.toLocaleString();
+            document.getElementById('inputCost').textContent = costs.input.toFixed(4);
+            document.getElementById('outputCost').textContent = costs.output.toFixed(4);
+            document.getElementById('totalCostDetail').textContent = costs.total.toFixed(4);
+            
+            // Update budget
+            const percentage = (currentUsage.dailySpent / PRICING.warningThreshold) * 100;
+            document.getElementById('todayPercentage').textContent = percentage.toFixed(1) + '%';
+            document.getElementById('dailySpent').textContent = currentUsage.dailySpent.toFixed(2);
+            document.getElementById('remainingBudget').textContent = (PRICING.warningThreshold - currentUsage.dailySpent).toFixed(2);
+            
+            const budgetProgress = document.getElementById('budgetProgress');
+            budgetProgress.style.width = Math.min(percentage, 100) + '%';
+            
+            if (percentage < 50) budgetProgress.className = 'progress-fill progress-green';
+            else if (percentage < 100) budgetProgress.className = 'progress-fill progress-yellow';
+            else budgetProgress.className = 'progress-fill progress-red';
+            
+            // Update alert status
+            const alert = getAlertLevel(currentUsage.dailySpent);
+            document.getElementById('alertStatus').textContent = alert.message.replace(/!/g, '');
+            document.getElementById('alertMessage').textContent = alert.message;
+            document.getElementById('alertStatus').style.color = alert.color;
+            
+            console.log('Dashboard updated at:', new Date().toLocaleTimeString());
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDashboard();
+            console.log('✅ Dashboard loaded with pricing v1.1');
+        });
+    </script>
+</body>
+</html>

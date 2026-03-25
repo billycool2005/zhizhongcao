@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智种草 - Token 实时监控仪表盘</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: #f5f7fa; 
+            color: #1a202c;
+        }
+        
+        .dashboard { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 2rem; 
+        }
+        
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 2rem; 
+        }
+        .header h1 { font-size: 2rem; color: #2d3748; }
+        .live-indicator { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            background: #e6fffa; 
+            padding: 0.5rem 1rem; 
+            border-radius: 8px;
+            color: #38a169;
+        }
+        .live-dot { 
+            width: 8px; 
+            height: 8px; 
+            background: #38a169; 
+            border-radius: 50%; 
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Cards */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2rem;
+        }
+        .card { 
+            background: white; 
+            border-radius: 12px; 
+            padding: 1.5rem; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .card-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 1rem;
+        }
+        .card-title { font-size: 0.875rem; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; }
+        .card-value { font-size: 2rem; font-weight: bold; color: #2d3748; }
+        .card-change { font-size: 0.875rem; margin-top: 0.5rem; }
+        .change-positive { color: #38a169; }
+        .change-negative { color: #e53e3e; }
+        .change-neutral { color: #718096; }
+        
+        /* Alert Banner */
+        .alert-banner { 
+            padding: 1rem 1.5rem; 
+            border-radius: 8px; 
+            margin-bottom: 1.5rem; 
+            font-weight: 500;
+        }
+        .alert-normal { background: #e6fffa; color: #38a169; border-left: 4px solid #38a169; }
+        .alert-warning { background: #fffaf0; color: #dd6b20; border-left: 4px solid #dd6b20; }
+        .alert-critical { background: #fff5f5; color: #e53e3e; border-left: 4px solid #e53e3e; }
+        
+        /* Charts */
+        .chart-container { 
+            height: 300px; 
+            margin-top: 1rem; 
+            position: relative;
+        }
+        .bar-chart { display: flex; align-items: flex-end; height: 100%; gap: 4px; }
+        .bar { 
+            flex: 1; 
+            background: linear-gradient(to top, #667eea, #764ba2); 
+            border-radius: 4px 4px 0 0; 
+            transition: all 0.3s; 
+            position: relative;
+        }
+        .bar:hover { background: linear-gradient(to top, #4c51bf, #5b6cf7); transform: scaleY(1.02); }
+        .bar-label { 
+            position: absolute; 
+            bottom: -20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            font-size: 0.7rem; 
+            color: #718096;
+        }
+        .bar-value { 
+            position: absolute; 
+            top: -20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            font-size: 0.7rem; 
+            font-weight: bold;
+        }
+        
+        /* User Table */
+        .table-container { 
+            overflow-x: auto; 
+            margin-top: 1rem;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+        }
+        th, td { 
+            padding: 0.75rem 1rem; 
+            text-align: left; 
+            border-bottom: 1px solid #e2e8f0; 
+        }
+        th { 
+            background: #f7fafc; 
+            font-weight: 600; 
+            color: #4a5568;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+        tr:hover { background: #f7fafc; }
+        
+        .plan-badge { 
+            display: inline-block; 
+            padding: 0.25rem 0.75rem; 
+            border-radius: 9999px; 
+            font-size: 0.75rem; 
+            font-weight: 500;
+        }
+        .plan-free { background: #edf2f7; color: #4a5568; }
+        .plan-pro { background: #ebf4ff; color: #3182ce; }
+        .plan-enterprise { background: #e6fffa; color: #319795; }
+        
+        .progress-bar { 
+            width: 100%; 
+            height: 6px; 
+            background: #e2e8f0; 
+            border-radius: 3px; 
+            overflow: hidden;
+        }
+        .progress-fill { 
+            height: 100%; 
+            border-radius: 3px; 
+            transition: width 0.3s;
+        }
+        .progress-normal { background: #38a169; }
+        .progress-warning { background: #dd6b20; }
+        .progress-danger { background: #e53e3e; }
+        
+        /* Stats Row */
+        .stats-row { display: flex; gap: 2rem; margin-top: 1rem; }
+        .stat-item { flex: 1; }
+        .stat-label { font-size: 0.75rem; color: #718096; margin-bottom: 0.25rem; }
+        .stat-value { font-size: 1.25rem; font-weight: bold; color: #2d3748; }
+        
+        /* Refresh */
+        .refresh-btn { 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            color: #718096;
+            transition: color 0.2s;
+        }
+        .refresh-btn:hover { color: #2d3748; }
+        
+        /* Prediction */
+        .prediction-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border: 1px solid #667eea30;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .prediction-label { font-size: 0.75rem; color: #718096; }
+        .prediction-value { font-size: 1.5rem; font-weight: bold; color: #2d3748; }
+        
+        /* Status Indicators */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        .status-green { background: #38a169; }
+        .status-yellow { background: #dd6b20; }
+        .status-red { background: #e53e3e; }
+        
+        @media (max-width: 768px) {
+            .dashboard { padding: 1rem; }
+            .grid { grid-template-columns: 1fr; }
+            .stats-row { flex-direction: column; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔥 Token 实时监控仪表盘</h1>
+            <div class="live-indicator">
+                <div class="live-dot"></div>
+                <span>实时数据 · 自动更新中</span>
+                <button class="refresh-btn" onclick="refreshData()" title="手动刷新">↻</button>
+            </div>
+        </div>
+
+        <!-- Alert Banner -->
+        <div id="alertBanner" class="alert-banner alert-normal">
+            ✅ 系统运行正常 | 当前消费：￥0.00/小时 (预计今日 ￥0.00)
+        </div>
+
+        <!-- Key Metrics Grid -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">当前小时</span>
+                    <span>📊</span>
+                </div>
+                <div class="card-value" id="currentHourTokens">0</div>
+                <div class="card-change change-neutral"><span id="currentHourCost">￥0.00</span>/小时</div>
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-label">请求数</div>
+                        <div class="stat-value" id="hourlyRequests">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">活跃用户</div>
+                        <div class="stat-value" id="activeUsers">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">今日累计</span>
+                    <span>📅</span>
+                </div>
+                <div class="card-value" id="todayTokens">0</div>
+                <div class="card-change change-neutral"><span id="todayCost">￥0.00</span>总计</div>
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-label">独立用户</div>
+                        <div class="stat-value" id="todayUsers">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">总请求</div>
+                        <div class="stat-value" id="todayRequests">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">本月预测</span>
+                    <span>🎯</span>
+                </div>
+                <div class="card-value" id="monthlyPrediction">￥0.00</div>
+                <div class="card-change change-neutral">预计月底花费</div>
+                <div class="prediction-box">
+                    <div class="prediction-label">今日预测</div>
+                    <div class="prediction-value" id="dailyPrediction">￥0.00</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">安全阈值</span>
+                    <span>⚠️</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #718096;">
+                            <span>警告阈值 (￥100)</span>
+                            <span><span class="status-dot status-yellow"></span>Warning</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-normal" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #718096;">
+                            <span>紧急阈值 (￥300)</span>
+                            <span><span class="status-dot status-yellow"></span>Critical</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-normal" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #718096;">
+                            <span>危险阈值 (￥500)</span>
+                            <span><span class="status-dot status-red"></span>Danger</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-normal" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hourly Chart -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <span class="card-title">今日每小时 Token 消耗趋势</span>
+            </div>
+            <div class="chart-container">
+                <div class="bar-chart" id="hourlyChart">
+                    <!-- 动态生成的柱子 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- User Usage Table -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">用户 Token 使用情况 TOP 10</span>
+                <span>👥</span>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>用户 ID</th>
+                            <th>套餐</th>
+                            <th>今日使用</th>
+                            <th>剩余</th>
+                            <th>进度</th>
+                            <th>今日成本</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        <!-- 动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据 - 人民币版本
+        const mockData = {
+            currentHour: { tokens: 1250, cost: 18.5, requests: 45 },  // 换算成人民币
+            today: { tokens: 8500, cost: 125.0, users: 23, requests: 312 },
+            predictions: { daily: 650.0, monthly: 19500.0 },  // 人民币
+            alerts: { level: "normal", message: "系统运行正常" },
+            users: [
+                { id: "user_1", plan: "pro", todayTokens: 4500, limit: 5000, cost: 54.0 },
+                { id: "user_2", plan: "free", todayTokens: 480, limit: 500, cost: 1.2 },
+                { id: "user_3", plan: "enterprise", todayTokens: 12000, limit: 50000, cost: 180.0 },
+                { id: "user_4", plan: "pro", todayTokens: 2100, limit: 5000, cost: 31.5 },
+                { id: "user_5", plan: "free", todayTokens: 520, limit: 500, cost: 1.5 },
+            ]
+        };
+
+        function updateDashboard() {
+            // 更新核心指标
+            document.getElementById('currentHourTokens').textContent = formatNumber(mockData.currentHour.tokens);
+            document.getElementById('currentHourCost').textContent = '￥' + mockData.currentHour.cost.toFixed(2);
+            document.getElementById('hourlyRequests').textContent = mockData.currentHour.requests;
+            document.getElementById('activeUsers').textContent = mockData.today.users;
+
+            document.getElementById('todayTokens').textContent = formatNumber(mockData.today.tokens);
+            document.getElementById('todayCost').textContent = '￥' + mockData.today.cost.toFixed(2);
+            document.getElementById('todayUsers').textContent = mockData.today.users;
+            document.getElementById('todayRequests').textContent = mockData.today.requests;
+
+            document.getElementById('monthlyPrediction').textContent = '￥' + mockData.predictions.monthly.toFixed(0);
+            document.getElementById('dailyPrediction').textContent = '￥' + mockData.predictions.daily.toFixed(2);
+
+            // 更新告警横幅
+            const alertBanner = document.getElementById('alertBanner');
+            if (mockData.alerts.level === "normal") {
+                alertBanner.className = "alert-banner alert-normal";
+                alertBanner.innerHTML = `✅ 系统运行正常 | 当前消费：￥${mockData.currentHour.cost.toFixed(2)}/小时 (预计今日 ￥${mockData.predictions.daily.toFixed(2)})`;
+            } else if (mockData.alerts.level === "warning") {
+                alertBanner.className = "alert-banner alert-warning";
+                alertBanner.innerHTML = `⚠️ 警告 | 今日已超预算的 ${((mockData.predictions.daily / 100) * 100).toFixed(0)}%，建议监控`;
+            } else if (mockData.alerts.level === "critical") {
+                alertBanner.className = "alert-banner alert-critical";
+                alertBanner.innerHTML = `🔴 紧急 | 今日预测花费 ￥${mockData.predictions.daily.toFixed(2)},已接近危险阈值!`;
+            }
+
+            // 更新图表
+            renderHourlyChart();
+            
+            // 更新表格
+            renderUserTable();
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        function renderHourlyChart() {
+            const chart = document.getElementById('hourlyChart');
+            const hours = Array.from({length: 24}, (_, i) => i);
+            const maxTokens = Math.max(...hours.map(() => Math.random() * 5000), 100);
+            
+            chart.innerHTML = hours.map(hour => {
+                const tokens = Math.floor(Math.random() * 3000) + 500;
+                const percentage = (tokens / maxTokens) * 100;
+                return `
+                    <div class="bar" style="height: ${percentage}%">
+                        <div class="bar-value">${formatNumber(tokens)}</div>
+                        <div class="bar-label">${hour}:00</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderUserTable() {
+            const tbody = document.getElementById('userTableBody');
+            
+            tbody.innerHTML = mockData.users.map(user => {
+                const remaining = user.limit - user.todayTokens;
+                const percentage = (user.todayTokens / user.limit) * 100;
+                
+                let progressClass = 'progress-normal';
+                let statusDot = 'status-green';
+                let statusText = '正常';
+                
+                if (percentage > 80) {
+                    progressClass = 'progress-warning';
+                    statusDot = 'status-yellow';
+                    statusText = '预警';
+                }
+                if (percentage >= 100) {
+                    progressClass = 'progress-danger';
+                    statusDot = 'status-red';
+                    statusText = '超限';
+                }
+                
+                const planClass = `plan-${user.plan}`;
+                
+                return `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td><span class="plan-badge ${planClass}">${user.plan.toUpperCase()}</span></td>
+                        <td>${formatNumber(user.todayTokens)}</td>
+                        <td>${formatNumber(remaining)}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill ${progressClass}" style="width: ${Math.min(percentage, 100)}%"></div>
+                            </div>
+                        </td>
+                        <td>￥${user.cost.toFixed(2)}</td>
+                        <td><span class="status-dot ${statusDot}"></span>${statusText}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function refreshData() {
+            console.log("刷新数据...");
+            // TODO: 实际从 API 获取数据
+            // 这里是模拟随机波动
+            mockData.currentHour.tokens += Math.floor(Math.random() * 200) - 50;
+            mockData.today.tokens += Math.floor(Math.random() * 500) - 100;
+            updateDashboard();
+        }
+
+        // 初始化
+        updateDashboard();
+
+        // 每 10 秒自动更新
+        setInterval(updateDashboard, 10000);
+    </script>
+</body>
+</html>
