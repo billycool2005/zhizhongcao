@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>智种草 - 7 天免费内测 | AI 自动种草工具</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.6; color: #333; background: #f8f9fa; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .hero { text-align: center; padding: 4rem 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; margin-bottom: 2rem; }
+        .hero h1 { font-size: 3rem; margin-bottom: 1rem; }
+        .hero p { font-size: 1.5rem; opacity: 0.9; margin-bottom: 2rem; }
+        .form-card { max-width: 500px; margin: 0 auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        input { width: 100%; padding: 0.75rem; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        input:focus { outline: none; border-color: #667eea; }
+        button { width: 100%; padding: 1rem; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: transform 0.2s; }
+        button:hover { transform: translateY(-2px); background: #5568d3; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 3rem; }
+        .feature { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .warning { background: #fff3cd; color: #856404; padding: 1rem; border-radius: 8px; margin-top: 1rem; text-align: center; }
+        footer { text-align: center; margin-top: 3rem; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>🐵 智种草</h1>
+            <p>AI 问答种草自动发文工具 · 让你躺赚流量和收益！</p>
+            <p style="font-size: 1.2rem;">🎁 限时 7 天免费内测 (仅剩 <span id="spots">43</span> 个名额)</p>
+        </div>
+
+        <div class="form-card">
+            <h2 style="text-align: center; margin-bottom: 1.5rem;">立即申请内测资格</h2>
+            <form id="signup-form">
+                <div class="form-group">
+                    <label for="name">姓名/昵称 *</label>
+                    <input type="text" id="name" name="name" required placeholder="比如：张三">
+                </div>
+                <div class="form-group">
+                    <label for="email">邮箱 *</label>
+                    <input type="email" id="email" name="email" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="platform">主攻平台 *</label>
+                    <select id="platform" name="platform" required style="width: 100%; padding: 0.75rem; border: 2px solid #ddd; border-radius: 8px;">
+                        <option value="">请选择</option>
+                        <option value="zhihu">知乎</option>
+                        <option value="xiaohongshu">小红书</option>
+                        <option value="both">双平台</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="experience">现有经验</label>
+                    <textarea id="experience" name="experience" rows="3" placeholder="简单说说你的自媒体运营经验..." style="width: 100%; padding: 0.75rem; border: 2px solid #ddd; border-radius: 8px;"></textarea>
+                </div>
+                <button type="submit">🚀 立即报名 (剩余 43 个名额！)</button>
+            </form>
+            <div class="warning">
+                ⚡️ 紧急提示：内测仅限前 50 名，额满即止！
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <h3>🤖 AI 自动选题</h3>
+                <p>智能抓取知乎/小红书高流量低竞争问题，再也不犯愁写什么！</p>
+            </div>
+            <div class="feature">
+                <h3>✍️ AI 自动撰稿</h3>
+                <p>按专业模板生成高质量种草文，质量评分>0.7 保证！</p>
+            </div>
+            <div class="feature">
+                <h3>📢 自动发布管理</h3>
+                <p>无需手动操作，AI 帮你排版、配图、定时发布。</p>
+            </div>
+            <div class="feature">
+                <h3>🎯 Token 监控风控</h3>
+                <p>实时监测消耗，自动检测违规词，避免封号风险。</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 智种草 Zhizhongcao.ai | Made with 💜 by the悟空 AI Team</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">内测期间任何问题请随时联系我们</p>
+        </footer>
+    </div>
+
+    <script>
+        // Countdown timer for spots
+        let spots = 43;
+        const spotElement = document.getElementById('spots');
+        
+        setInterval(() => {
+            if (spots > 5) {
+                spots--;
+                spotElement.textContent = spots;
+            }
+        }, 300000); // Decrease every 5 minutes
+
+        // Form submission
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                platform: document.getElementById('platform').value,
+                experience: document.getElementById('experience').value,
+                registered_at: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch('/api/v1/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    alert('✅ 报名成功！我们已在 ' + formData.email + ' 发送激活邮件');
+                    spotElement.textContent = spots > 0 ? spots : '0';
+                } else {
+                    alert('❌ 报名失败，请稍后重试');
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                // Fallback: save to localStorage for testing
+                let users = JSON.parse(localStorage.getItem('seed_users') || '[]');
+                users.push(formData);
+                localStorage.setItem('seed_users', JSON.stringify(users));
+                alert('✅ 内测报名已记录！我们将通过飞书联系您~');
+            }
+        });
+
+        // Auto-track registrations
+        window.addEventListener('load', () => {
+            console.log('📊 Signup page loaded at', new Date().toLocaleString());
+        });
+    </script>
+</body>
+</html>

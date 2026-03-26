@@ -1,53 +1,9 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# FastAPI / Uvicorn
-*.log
 .env
-.env.local
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
+.env.*
+*.log
 .DS_Store
-Thumbs.db
-
-# Docker
-docker-compose.override.yml
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Misc
-*.bak
-*.tmp
-.sass-cache/
+__pycache__/
+*.pyc
+.git
+node_modules/
+.DS_Store
